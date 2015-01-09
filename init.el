@@ -27,7 +27,6 @@
 	helm
 	magit
 	paredit
-	smex
 	undo-tree
 
 	))
@@ -102,6 +101,14 @@
   (define-key key-translation-map (kbd "C-x C-d") (kbd "C-x d")))
 
 
+;;;; VARS
+(setq
+
+ ring-bell-function 'ignore
+
+ )
+
+
 ;;;; GLOBAL KEY BINDINGS
 (defun tel/fns/global-binds (binds)
   (mapc
@@ -162,10 +169,6 @@
 (tel/fns/global-binds
  (list
   '("C-c C-e" eval-and-replace)))
-
-(tel/fns/global-binds
- (list
-  '("C-x C-i" imenu)))
 
 (tel/fns/global-binds
  (list
@@ -258,27 +261,56 @@
 
 ;;;; HELM
 (after 'helm
+  (require 'helm-config)
+
+  (helm-mode 1)
+  
   (setq helm-ff-auto-update-initial-value nil)
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-h") (kbd "<DEL>"))
   (define-key helm-map (kbd "C-w") 'subword-backward-kill)
   (define-key helm-map (kbd "M-w") 'helm-yank-text-at-point)
+  (define-key helm-map (kbd "C-z")  'helm-select-action)
   (setq helm-quick-update t)
-  (setq helm-follow-mode-persistent t))
+  (setq helm-follow-mode-persistent t)
+
+  (when (executable-find "curl")
+    (setq helm-google-suggest-use-curl-p t))
+
+  (setq helm-idle-delay           0.0
+	helm-input-idle-delay     0.01
+	helm-quick-update         t
+	helm-M-x-requires-pattern nil
+	helm-ff-skip-boring-files t
+	helm-semantic-fuzzy-match t
+	helm-imenu-fuzzy-match    t))
 
 (after 'helm-git-grep
   (define-key helm-git-grep-map (kbd "C-w") 'subword-backward-kill))
 
+(semantic-mode 1)
 
-;;;; SMEX
-(after "smex-autoloads" (smex-initialize))
+(tel/fns/global-binds
+ (list
+  '("C-c h"     helm-mini) 
+  '("C-h a"     helm-apropos)
+  '("C-x C-i"   helm-semantic-or-imenu)
+  '("C-x c SPC" helm-all-mark-rings)
+  '("C-x c o"   helm-occur)
+  '("C-x c s"   helm-swoop)
+  '("C-x f"     helm-for-files)
+  '("C-x C-f"   helm-find-files)
+  '("M-y"       helm-show-kill-ring)
+  '("C-x c g"   helm-google-suggest)
+  '("M-x"       helm-M-x)))
 
-(after 'smex
-  (tel/fns/global-binds
-   (list
-    '("M-x"         smex)
-    '("M-X"         smex-major-mode-commands)
-    '("C-c C-c M-x" execute-extended-command))))
+
+;;;; EMACS LISP
+(defun imenu-elisp-sections ()
+  (setq imenu-prev-index-position-function nil)
+  (add-to-list 'imenu-generic-expression '("Sections" "^;;;; \\(.+\\)$" 1) t))
+
+(add-hook 'emacs-lisp-mode-hook 'imenu-elisp-sections)
 
 
 ;;;; YAS SNIPPETS
