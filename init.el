@@ -63,7 +63,8 @@
       '("~/.cabal/bin/"
         "~/bin/"
         "~/.nix-profile/bin/"
-        "/usr/texbin/"))
+        "/usr/texbin/"
+	))
 
 (defun tel/fns/localpaths (the-paths)
   (setenv "PATH"
@@ -80,6 +81,25 @@
   (mapc (lambda (path) (push path exec-path)) the-paths))
 
 (tel/fns/localpaths tel/vars/paths)
+
+;;;; Nix
+(setq load-path
+      (append (list "~/.nix-profile/share/emacs/site-lisp"
+		    "/run/current-system/sw/share/emacs/site-lisp")
+	      load-path))
+(require 'nix-mode)
+
+(defun tel/fns/setup-nix-paths ()
+  (let ((nix-link "~/.nix-profile/")
+	(nix-path (getenv "NIX_PATH")))
+    (tel/fns/localpaths
+     (list (concat nix-link "bin")
+	   (concat nix-link "sbin")))
+    (setenv "NIX_PATH"
+	    (concat (if nix-path (concat nix-path ":") "")
+		    "nixpkgs=~/.nix-defexpr/channels/nixpkgs"))))
+(tel/fns/setup-nix-paths)
+
 
 ;;;; SERVER
 (ignore-errors (server-start))
