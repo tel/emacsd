@@ -9,7 +9,16 @@
 
 ;;;; PACKAGES
 (require 'package)
+(add-to-list 'package-archives
+             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (package-initialize)
+
+(defun tel/fn/dopkgs (pkgs)
+  (package-refresh-contents)
+  (mapc #'(lambda (package)
+            (unless (package-installed-p package)
+              (package-install package)))
+        pkgs))
 
 (setf tel/vars/packages
       '(
@@ -18,26 +27,25 @@
 	base16-theme
 	browse-kill-ring
 	company
+	company-ghc
 	deft
 	dired+
 	dropdown-list
 	expand-region
+	ghc
 	gist
 	git-commit-mode
+	haskell-mode
 	helm
+	helm-ack
+	helm-ghc
 	magit
 	paredit
 	undo-tree
 
 	))
 
-(defun tel/fn/dopkgs ()
-  (package-refresh-contents)
-  (mapc #'(lambda (package)
-            (unless (package-installed-p package)
-              (package-install package)))
-        tel/vars/packages))
-(tel/fn/dopkgs)
+(tel/fn/dopkgs tel/vars/packages)
 
 
 ;;;; MACROS
@@ -82,7 +90,7 @@
 
 (tel/fns/localpaths tel/vars/paths)
 
-;;;; Nix
+;;;; NIX
 (setq load-path
       (append (list "~/.nix-profile/share/emacs/site-lisp"
 		    "/run/current-system/sw/share/emacs/site-lisp")
@@ -96,7 +104,7 @@
      (list (concat nix-link "bin")
 	   (concat nix-link "sbin")))
     (setenv "NIX_PATH"
-	    (concat (if nix-path (concat nix-path ":") "")
+	    (concat "~/src/nixpkgs:"
 		    "nixpkgs=~/.nix-defexpr/channels/nixpkgs"))))
 (tel/fns/setup-nix-paths)
 
@@ -168,7 +176,6 @@
   '("M-l"     comment-dwim-line)
   '("C-c k"   kill-this-buffer)
   '("C-c C-k" kill-this-buffer)
-  '("C-x C-b" ibuffer)
   '("C-c y"   bury-buffer)))
 
 (tel/fns/global-binds
@@ -303,7 +310,15 @@
 	helm-M-x-requires-pattern nil
 	helm-ff-skip-boring-files t
 	helm-semantic-fuzzy-match t
-	helm-imenu-fuzzy-match    t))
+	helm-imenu-fuzzy-match    t)
+
+  (require 'helm-buffers)
+  
+  (require 'helm-eshell)
+  (add-hook 'eshell-mode-hook
+	    #'(lambda ()
+		(define-key eshell-mode-map (kbd "C-c C-l")  'helm-eshell-history)))
+  (define-key shell-mode-map (kbd "C-c C-l") 'helm-comint-input-ring))
 
 (after 'helm-git-grep
   (define-key helm-git-grep-map (kbd "C-w") 'subword-backward-kill))
@@ -320,6 +335,7 @@
   '("C-x c s"   helm-swoop)
   '("C-x f"     helm-for-files)
   '("C-x C-f"   helm-find-files)
+  '("C-x C-b"   helm-buffers-list)
   '("M-y"       helm-show-kill-ring)
   '("C-x c g"   helm-google-suggest)
   '("M-x"       helm-M-x)))
@@ -425,6 +441,50 @@
   (define-key magit-status-mode-map (kbd "q") 'magit-quit-session))
 
 
+;;;; HASKELL
+(after "haskell-mode-autoloads"
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+  
+  (define-key haskell-mode-map (kbd "C-,") 'haskell-move-nested-left)
+  (define-key haskell-mode-map (kbd "C-.") 'haskell-move-nested-right)
+  
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+
+  (define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile)
+  (define-key haskell-mode-map (kbd "C-d")     'company-complete-common)
+  
+  (progn
+    (define-key haskell-mode-map (kbd "C-x C-d") nil)
+    (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
+    (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
+    (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
+    (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
+    (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
+    (define-key haskell-mode-map (kbd "C-c M-.") nil)
+    (define-key haskell-mode-map (kbd "C-c C-d") nil))
+
+  (progn
+    (define-key haskell-mode-map [f8]        'haskell-navigate-imports)
+    (define-key haskell-mode-map (kbd "SPC") 'haskell-mode-contextual-space))
+
+  (add-hook 'haskell-mode-hook (lambda () (ghc-init)))
+
+  (custom-set-variables
+   '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-process-auto-import-loaded-modules  t)
+   '(haskell-process-log                         t)
+   '(haskell-process-type                        'cabal-repl)
+   '(haskell-compile-cabal-build-alt-command
+     "cd %s; nix-shell --pure; cabal configure; cabal build --ghc-option=-ferror-spans")))
+
+(after "company-mode-autoloads"
+  (add-to-list 'company-backends 'company-ghc)
+  (custom-set-variables '(company-ghc-show-info t)))
+
+(after "haskell-cabal-autoloads"
+  (define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))
+
+
 ;;;; DEFT
 (tel/fns/global-binds
  (list
@@ -472,12 +532,18 @@
 
 ;;;; COMPANY
 (after 'company
+  (require 'company)
+  (add-hook 'after-init-hook 'global-company-mode)
+  
   (add-to-list 'company-backends 'company-capf)
   (setq company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend))
   (setq company-idle-delay 0.1)
   (setq company-begin-commands '(self-insert-command))
   (define-key company-active-map (kbd "C-w") nil))
 
+(tel/fns/global-binds
+ (list
+  '("C-d" company-complete-common)))
 
 ;;;; AUTO-COMPLETE
 (after 'auto-complete
