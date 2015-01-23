@@ -26,6 +26,8 @@
 	ace-jump-mode
 	base16-theme
 	browse-kill-ring
+	browse-url-dwim
+	circe
 	company
 	company-ghc
 	deft
@@ -119,6 +121,12 @@
   (defalias 'eshell/ff   'find-file)
   (defalias 'eshell/ffow 'find-file-other-window)
   (defalias 'yes-or-no-p 'y-or-n-p))
+
+
+;;;; BROWSE-URL DWIM
+
+(require 'browse-url-dwim)
+(browse-url-dwim-mode 1)
 
 
 ;;;; REMAPS
@@ -438,6 +446,44 @@
 (after 'magit
   (define-key magit-status-mode-map (kbd "W") 'magit-toggle-whitespace)
   (define-key magit-status-mode-map (kbd "q") 'magit-quit-session))
+
+
+;;;; CIRCE
+(tel/fns/global-binds
+ (list '("C-c e" circe)))
+
+(load-file "~/.passwords.el")
+(setq circe-network-options
+      `(("Freenode"
+         :nick "tel"
+         :channels ( "#haskell"
+		     "#haskell-lens"
+		     "#haskell-blah"
+		     "#nixos"
+		     "#idris"
+		     "#numerical-haskell"
+		     "#ghcjs"
+		     "#nix-Darwin"
+		     "##categorytheory"
+		     )
+         :nickserv-password ,freenode-password
+         )))
+
+
+(setq circe-reduce-lurker-spam t
+      lui-flyspell-p           t
+      lui-time-stamp-position  'right-margin
+      lui-time-stamp-format    "%H:%M")
+
+(require 'lui-autopaste)
+(add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
+
+(require 'lui-logging)
+(add-hook 'circe-channel-mode-hook 'enable-lui-logging)
+
+(add-hook 'lui-mode-hook 'my-circe-set-margin)
+(defun my-circe-set-margin ()
+  (setq right-margin-width 5))
 
 
 ;;;; HASKELL
