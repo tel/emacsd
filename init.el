@@ -104,8 +104,7 @@
      (list (concat nix-link "bin")
 	   (concat nix-link "sbin")))
     (setenv "NIX_PATH"
-	    (concat "~/src/nixpkgs:"
-		    "nixpkgs=~/.nix-defexpr/channels/nixpkgs"))))
+	    "/Users/tel/src/nixpkgs:nixpkgs=/Users/tel/src/nixpkgs")))
 (tel/fns/setup-nix-paths)
 
 
