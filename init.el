@@ -42,6 +42,7 @@
 	helm-ack
 	helm-ghc
 	magit
+	markdown-mode
 	paredit
 	undo-tree
 
@@ -142,6 +143,12 @@
  ring-bell-function 'ignore
 
  )
+
+;;;; LLVM
+
+(load-file "~/.emacs.d/llvm-mode.el")
+(require 'llvm-mode)
+(add-to-list 'auto-mode-alist '("\\.ll\\'" . llvm-mode))
 
 
 ;;;; GLOBAL KEY BINDINGS
@@ -464,6 +471,8 @@
 		     "#numerical-haskell"
 		     "#ghcjs"
 		     "#nix-Darwin"
+		     "##statistics"
+		     "##math"
 		     "##categorytheory"
 		     )
          :nickserv-password ,freenode-password
@@ -512,7 +521,7 @@
     (define-key haskell-mode-map [f8]        'haskell-navigate-imports)
     (define-key haskell-mode-map (kbd "SPC") 'haskell-mode-contextual-space))
 
-  (add-hook 'haskell-mode-hook (lambda () (ghc-init)))
+  ;; (add-hook 'haskell-mode-hook (lambda () (ghc-init)))
 
   (custom-set-variables
    '(haskell-process-suggest-remove-import-lines t)
@@ -521,6 +530,12 @@
    '(haskell-process-type                        'cabal-repl)
    '(haskell-compile-cabal-build-alt-command
      "cd %s; nix-shell --pure; cabal configure; cabal build --ghc-option=-ferror-spans")))
+
+(setq haskell-process-type      'ghci
+      haskell-process-path-ghci "/Users/tel/.nix-profile/bin/nix-shell"
+
+      haskell-process-args-ghci 
+      '("-I" "." "shell.nix" "--pure" "--command" "cabal configure; cabal repl"))
 
 (after "company-mode-autoloads"
   (add-to-list 'company-backends 'company-ghc)
