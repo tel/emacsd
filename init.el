@@ -6,15 +6,20 @@
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (setq inhibit-startup-screen t)
 
+;;;; SPACES/TABS
+
+(setq-default indent-tabs-mode nil)
+(setq tab-width 2)
 
 ;;;; PACKAGES
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+             '("melpa" . "http://melpa.org/packages/") t)
 (package-initialize)
 
 (defun tel/fn/dopkgs (pkgs)
-  (package-refresh-contents)
+  (when (not package-archive-contents)
+    (package-refresh-contents))
   (mapc #'(lambda (package)
             (unless (package-installed-p package)
               (package-install package)))
@@ -41,6 +46,7 @@
 	helm
 	helm-ack
 	helm-ghc
+        helm-swoop
 	magit
 	markdown-mode
 	paredit
@@ -346,7 +352,7 @@
   '("C-x C-i"   helm-semantic-or-imenu)
   '("C-x c SPC" helm-all-mark-rings)
   '("C-x c o"   helm-occur)
-  '("C-x c s"   helm-swoop)
+  '("C-c s"     helm-swoop)
   '("C-x f"     helm-for-files)
   '("C-x C-f"   helm-find-files)
   '("C-x C-b"   helm-buffers-list)
