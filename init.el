@@ -479,6 +479,7 @@
 		     "#numerical-haskell"
 		     "#ghcjs"
 		     "#nix-Darwin"
+                     "#vinyl"
 		     "##statistics"
 		     "##math"
 		     "##categorytheory"
