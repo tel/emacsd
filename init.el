@@ -354,7 +354,7 @@
   '("C-x C-i"   helm-semantic-or-imenu)
   '("C-x c SPC" helm-all-mark-rings)
   '("C-x c o"   helm-occur)
-  '("C-c s"     helm-swoop)
+  '("C-c C-s"   helm-swoop)
   '("C-x f"     helm-for-files)
   '("C-x C-f"   helm-find-files)
   '("C-x C-b"   helm-buffers-list)
