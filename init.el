@@ -49,7 +49,9 @@
         helm-swoop
 	magit
 	markdown-mode
+        merlin
 	paredit
+        tuareg
 	undo-tree
 
 	))
@@ -499,6 +501,16 @@
 (add-hook 'lui-mode-hook 'my-circe-set-margin)
 (defun my-circe-set-margin ()
   (setq right-margin-width 5))
+
+
+;;;; OCAML
+
+(after "tuareg-autoloads")
+
+(after "merlin-autoloads"
+  (autoload 'merlin-mode "merlin" "Merlin mode" t)
+  (add-hook 'tuareg-mode-hook 'merlin-mode)
+  (add-hook 'caml-mode-hook 'merlin-mode))
 
 
 ;;;; HASKELL
