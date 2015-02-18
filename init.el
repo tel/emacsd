@@ -50,9 +50,11 @@
 	magit
 	markdown-mode
         merlin
+        ocp-indent
 	paredit
         tuareg
 	undo-tree
+        utop
 
 	))
 
@@ -83,6 +85,7 @@
         "~/bin/"
         "~/.nix-profile/bin/"
         "/usr/texbin/"
+        "~/.opam/system/bin"
 	))
 
 (defun tel/fns/localpaths (the-paths)
@@ -117,6 +120,16 @@
     (setenv "NIX_PATH"
 	    "/Users/tel/src/nixpkgs:nixpkgs=/Users/tel/src/nixpkgs")))
 (tel/fns/setup-nix-paths)
+
+
+;;;; BACKUP FILES
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+      backup-by-copying t    ; Don't delink hardlinks
+      version-control t      ; Use version numbers on backups
+      delete-old-versions t  ; Automatically delete excess backups
+      kept-new-versions 20   ; how many of the newest versions to keep
+      kept-old-versions 5    ; and how many of the old
+      )
 
 
 ;;;; SERVER
@@ -477,6 +490,7 @@
 		     "#nixos"
 		     "#idris"
 		     "#numerical-haskell"
+                     "#ocaml"
 		     "#ghcjs"
 		     "#nix-Darwin"
                      "#vinyl"
@@ -506,12 +520,24 @@
 
 ;;;; OCAML
 
-(after "tuareg-autoloads")
+(dolist (var (car (read-from-string (shell-command-to-string "opam config env --sexp"))))
+  (setenv (car var) (cadr var)))
 
-(after "merlin-autoloads"
-  (autoload 'merlin-mode "merlin" "Merlin mode" t)
-  (add-hook 'tuareg-mode-hook 'merlin-mode)
-  (add-hook 'caml-mode-hook 'merlin-mode))
+(setq exec-path (append (parse-colon-path (getenv "PATH"))
+                        (list exec-directory)))
+
+
+(add-to-list 'load-path "/Users/tel/.opam/4.02.1/share/emacs/site-lisp")
+(require 'ocp-index)
+(require 'ocp-indent)
+(add-hook 'tuareg-mode-hook 'merlin-mode)
+(add-hook 'tuareg-mode-hook 'ocp-index-mode)
+(add-hook 'tuareg-mode-hook 'ocp-setup-indent)
+
+(add-hook 'caml-mode-hook 'merlin-mode)
+
+(autoload 'merlin-mode "merlin" "Merlin mode" t)
+(after "merlin-autoloads")
 
 
 ;;;; HASKELL
@@ -610,9 +636,9 @@
 
 
 ;;;; COMPANY
-(after 'company
+(after "company-autoloads"
   (require 'company)
-  (add-hook 'after-init-hook 'global-company-mode)
+  (global-company-mode)
   
   (add-to-list 'company-backends 'company-capf)
   (setq company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend))
